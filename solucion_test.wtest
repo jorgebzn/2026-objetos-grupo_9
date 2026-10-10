@@ -1,0 +1,48 @@
+import solucion.*
+
+describe "Tests de combates" {
+    
+    const armaduraSaiyajin = new TrajeComun(porcentajeProteccion = 30)
+    const ropaPesada = new TrajeDeEntrenamiento()
+
+    const vegeta = new Guerrero(
+        potencialOfensivo = 200, 
+        energia = 5000, 
+        energiaOriginal = 5000, 
+        traje = armaduraSaiyajin
+    )
+    
+    const goku = new Guerrero(
+        potencialOfensivo = 100, 
+        energia = 4000, 
+        energiaOriginal = 4000, 
+        traje = ropaPesada
+    )
+
+    test "Ataque contra traje común: Mitiga el daño y da experiencia normal" {
+        
+        goku.atacar(vegeta)
+
+        assert.equals(4993, vegeta.energia())
+        
+        assert.equals(1, vegeta.experiencia())
+    }
+
+    test "Ataque contra traje de entrenamiento: No mitiga daño, da experiencia extra" {
+       
+        vegeta.atacar(goku)
+
+        assert.equals(3980, goku.energia())
+        
+        assert.equals(2, goku.experiencia())
+    }
+
+    test "Semilla del ermitaño: Restaura la energía a original" {
+
+        vegeta.atacar(goku) 
+        
+        goku.comerSemilla()
+
+        assert.equals(4000, goku.energia())
+    }
+}
