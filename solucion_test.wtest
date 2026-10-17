@@ -46,3 +46,85 @@ describe "Tests de combates" {
         assert.equals(4000, goku.energia())
     }
 }
+
+//Punto3 
+describe "Test de desgaste de trajes" {
+    const armaduraSaiyajin = new TrajeComun(porcentajeProteccion = 30)
+    const ropaPesada = new TrajeDeEntrenamiento()
+
+    const vegeta = new Guerrero(
+        potencialOfensivo = 200, 
+        energia = 5000, 
+        energiaOriginal = 5000, 
+        traje = armaduraSaiyajin
+    )
+    
+    const goku = new Guerrero(
+        potencialOfensivo = 100, 
+        energia = 4000, 
+        energiaOriginal = 4000, 
+        traje = ropaPesada
+    )
+    test "Un traje con un solo uso no esta gastado" {
+        vegeta.atacar(goku)
+        assert.notThat(ropaPesada.estaGastado())
+        goku.atacar(vegeta)
+        assert.notThat(armaduraSaiyajin.estaGastado())
+    } 
+
+    test "Un traje solo se desgasta cuando atacan al guerrero que lo esta usando" {
+        vegeta.atacar(goku) 
+        vegeta.atacar(goku) 
+        vegeta.atacar(goku) 
+        assert.equals(15, ropaPesada.desgaste())
+        assert.equals(0, armaduraSaiyajin.desgaste())
+    }
+
+    test "Un traje gastado deja de desgastarse, su desgaste siempre queda en 100" {
+        25.times ({i =>vegeta.atacar(goku)}) 
+        assert.equals(100, ropaPesada.desgaste())
+    }
+    test "Un traje se gasta a partir del uso numero 20" {
+        vegeta.atacar(goku)
+        assert.notThat(ropaPesada.estaGastado())
+        19.times ({i =>vegeta.atacar(goku)})
+        assert.that(ropaPesada.estaGastado())
+    }
+    test "Un traje comun protege hasta el uso que lo gasta y no en el siguiente" {
+        19.times ({i =>goku.atacar(vegeta)})
+        assert.equals(4867, vegeta.energia()) // 5000 - 19 (10 - 3)
+        goku.atacar(vegeta)                     // nro 20
+        assert.equals(4860, vegeta.energia()) //4867 - (10-3)
+        goku.atacar(vegeta)                 //nro 21
+        assert.equals(4850, vegeta.energia()) // 4860 - (10)
+    } 
+
+ //traje entrenamiento
+    test "un guerrero con traje de entrenamiento sin gastar gana el doble de experiencia" {
+        vegeta.atacar(goku) 
+        assert.equals(2, goku.experiencia())
+    }
+
+    test "un guerrero con traje de entrenamiento gastado gana experiencia normal" {
+        21.times ({i => vegeta.atacar(goku)})
+        assert.equals(41, goku.experiencia()) // 2* 20 usos + 1 
+    }
+//traje comun
+    test "un traje común sin gastar mitiga el daño según su porcentaje" {
+        assert.equals(70, armaduraSaiyajin.mitigarDanio(100)) // 100-30
+    }
+
+    test "un traje común gastado no mitiga el daño" {
+        21.times ({i =>goku.atacar(vegeta)})
+        assert.equals(100, armaduraSaiyajin.mitigarDanio(100)) 
+    }
+
+    test "un guerrero con traje común sin gastar gana la experiencia normal" {
+            19.times ({i =>goku.atacar(vegeta)})
+            assert.equals(19, vegeta.experiencia())
+    }
+    test "un guerrero con traje común gastado sigue ganando la experiencia normal" {
+            30.times ({i =>goku.atacar(vegeta)})
+            assert.equals(30, vegeta.experiencia()) 
+    }
+}
