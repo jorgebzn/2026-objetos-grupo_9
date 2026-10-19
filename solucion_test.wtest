@@ -128,3 +128,77 @@ describe "Test de desgaste de trajes" {
             assert.equals(30, vegeta.experiencia()) 
     }
 }
+
+//Punto 4
+describe "Test de trajes modularizados" {
+    const pieza1 = new Pieza(resistencia = 1)
+    const pieza2 = new Pieza(resistencia = 4)
+    const trajeModular = new TrajeModularizado(piezas = [pieza1, pieza2])
+
+    const vegeta = new Guerrero(
+        potencialOfensivo = 200, 
+        energia = 5000, 
+        energiaOriginal = 5000, 
+        traje = trajeModular
+    )
+
+    const goku = new Guerrero(
+        potencialOfensivo = 100, 
+        energia = 4000, 
+        energiaOriginal = 4000, 
+        traje = new TrajeDeEntrenamiento()
+    )
+
+    test "Ataque contra traje modularizado: Mitiga el daño según la resistencia de las piezas sanas" {
+        goku.atacar(vegeta)
+        assert.equals(4995, vegeta.energia()) // 5000 - (10 - 5)
+    }
+
+    test "Una pieza se gasta al llegar a 20 de desgaste (4 ataques) y el traje está gastado si todas sus piezas lo están"
+{
+    3.times ({i => goku.atacar(vegeta)}) // 3 ataques, pieza1: 15, pieza2: 15
+    assert.notThat(pieza1.estaGastada())
+    assert.notThat(pieza2.estaGastada())
+    assert.notThat(trajeModular.estaGastado())
+
+    goku.atacar(vegeta) // 4to ataque, pieza1: 20, pieza2: 20
+    assert.that(pieza1.estaGastada())
+    assert.that(pieza2.estaGastada())
+    assert.that(trajeModular.estaGastado())
+    }
+    
+    test "Un traje modularizado con una pieza sana y otra gastada no está gastado y solo mitiga con la pieza sana" {
+        const piezaSana = new Pieza(resistencia = 4, desgaste = 0)
+        const piezaGastada = new Pieza(resistencia = 3, desgaste = 20)
+        const trajeParcial = new TrajeModularizado(piezas = [piezaSana, piezaGastada])
+        vegeta.traje(trajeParcial)
+
+        assert.notThat(trajeParcial.estaGastado())
+        goku.atacar(vegeta)
+        assert.equals(4994, vegeta.energia())
+    }
+    test "Traje modularizado con 10 piezas y 0 gastadas aumenta 1 punto de experiencia (100%)" {
+        const piezas = []
+        10.times({ i => piezas.add(new Pieza(resistencia = 1, desgaste = 0)) })
+        vegeta.traje(new TrajeModularizado(piezas = piezas))
+        goku.atacar(vegeta)
+        assert.equals(1, vegeta.experiencia())
+    }
+    test "Traje modularizado con 10 piezas y 5 gastadas aumenta 0.5 puntos de experiencia (50%)" {
+        const piezas = []
+        5.times({ i => piezas.add(new Pieza(resistencia = 1, desgaste = 0)) })
+        5.times({ i => piezas.add(new Pieza(resistencia = 1, desgaste = 20)) })
+        vegeta.traje(new TrajeModularizado(piezas = piezas))
+        goku.atacar(vegeta)
+        assert.equals(0.5, vegeta.experiencia())
+    }
+    test "Traje modularizado con 10 piezas y 2 gastadas aumenta 0.8 puntos de experiencia (80%)" {
+        const piezas = []
+        8.times({ i => piezas.add(new Pieza(resistencia = 1, desgaste = 0)) })
+        2.times({ i => piezas.add(new Pieza(resistencia = 1, desgaste = 20)) })
+        vegeta.traje(new TrajeModularizado(piezas = piezas))
+        goku.atacar(vegeta)
+        assert.equals(0.8, vegeta.experiencia())
+    }
+
+    }
