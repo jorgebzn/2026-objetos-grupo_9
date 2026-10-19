@@ -80,3 +80,45 @@ class TrajeDeEntrenamiento inherits Traje {
         }
     }
 }
+
+class Pieza {
+
+    const resistencia
+    var desgaste = 0
+    const desgastePorAtaque = 5  //mantengo el mismo desgaste por ataque que el traje.
+    const desgasteMaximo = 20
+
+    method resistencia() = resistencia
+
+    method desgaste() = desgaste
+
+    method estaGastada() = desgaste >= desgasteMaximo
+
+    method usarPieza(){
+        if (!self.estaGastada()){
+            desgaste += desgastePorAtaque
+        }
+    }
+}
+
+class TrajeModularizado {
+    const piezas = []
+
+    method piezasSanas() = piezas.filter({pieza => !pieza.estaGastada()})
+
+    method estaGastado() = piezas.all({pieza => pieza.estaGastada()})
+
+    method usarTraje() {
+        self.piezasSanas().forEach({pieza => pieza.usarPieza()}) 
+        //decisión de diseño: al recibir un ataque todas las piezas reciben el impacto y se desgastan a la vez
+    }
+
+    method resistenciaTotal() = self.piezasSanas().sum({pieza => pieza.resistencia()})
+
+    method mitigarDanio(danioBase) = danioBase - self.resistenciaTotal() 
+    //el daño disminuye en una cantidad de unidades igual a la sumatoria de las resistencias de cada pieza que no esté gastada
+
+    method experienciaGanada() = self.piezasSanas().size() / piezas.size() 
+
+
+}
