@@ -201,4 +201,81 @@ describe "Test de trajes modularizados" {
         assert.equals(0.8, vegeta.experiencia())
     }
 
+}
+
+//Punto 5
+object escenarioTorneo {
+    method guerrero(potencia, traje) = new Guerrero(
+        potencialOfensivo = potencia,
+        energia = 10000,
+        energiaOriginal = 10000,
+        traje = traje
+    )
+
+    method trajeEnterizo() = new TrajeComun(porcentajeProteccion = 10)
+
+    method trajeModular(cantidadPiezas) {
+        const piezas = []
+        cantidadPiezas.times({i => piezas.add(new Pieza(resistencia = 1))})
+        return new TrajeModularizado(piezas = piezas)
     }
+
+    method postulantesPorPoder(potencias) =
+        potencias.map({potencia => self.guerrero(potencia, self.trajeEnterizo())})
+
+    method postulantesPorPiezas(cantidades) =
+        cantidades.map({cantidad => self.guerrero(100, self.trajeModular(cantidad))})
+}
+
+describe "Test de torneo y modalidades" {
+    const potencias = [18, 3, 11, 1, 16, 7, 20, 2, 9, 14, 5, 19, 4, 12, 8, 17, 6, 13]
+    const cantidadesDePiezas = [18, 3, 11, 1, 16, 7, 20, 2, 9, 14, 5, 19, 4, 12, 8, 17, 6, 13]
+
+    test "PowerIsBest selecciona los 16 postulantes con mayor poder de ataque" {
+        const seleccionados = powerIsBest.seleccionar(escenarioTorneo.postulantesPorPoder(potencias))
+
+        assert.equals(16, seleccionados.size())
+        assert.equals([20, 19, 18, 17, 16, 14, 13, 12, 11, 9, 8, 7, 6, 5, 4, 3],
+            seleccionados.map({guerrero => guerrero.poderDeAtaque()}))
+    }
+
+    test "Funny selecciona los 16 postulantes con más piezas en el traje" {
+        const seleccionados = funny.seleccionar(escenarioTorneo.postulantesPorPiezas(cantidadesDePiezas))
+
+        assert.equals(16, seleccionados.size())
+        assert.equals([20, 19, 18, 17, 16, 14, 13, 12, 11, 9, 8, 7, 6, 5, 4, 3],
+            seleccionados.map({guerrero => guerrero.cantidadDePiezas()}))
+    }
+
+    test "Un traje enterizo cuenta como una sola pieza" {
+        assert.equals(1, new TrajeComun(porcentajeProteccion = 30).cantidadDePiezas())
+        assert.equals(1, new TrajeDeEntrenamiento().cantidadDePiezas())
+        assert.equals(4, escenarioTorneo.trajeModular(4).cantidadDePiezas())
+    }
+
+    test "Surprise selecciona 16 postulantes al azar" {
+        const postulantes = escenarioTorneo.postulantesPorPoder(potencias)
+        const seleccionados = surprise.seleccionar(postulantes)
+
+        assert.equals(16, seleccionados.size())
+        assert.that(seleccionados.all({guerrero => postulantes.contains(guerrero)}))
+    }
+
+    test "Las modalidades devuelven todos los postulantes si hay menos de 16" {
+        const postulantes = escenarioTorneo.postulantesPorPoder([5, 1, 9, 3, 7, 2, 8, 4, 6, 10])
+
+        assert.equals(10, powerIsBest.seleccionar(postulantes).size())
+        assert.equals(10, funny.seleccionar(postulantes).size())
+        assert.equals(10, surprise.seleccionar(postulantes).size())
+    }
+
+    test "El torneo delega la selección en su modalidad" {
+        const torneo = new Torneo(
+            modalidad = powerIsBest,
+            postulantes = escenarioTorneo.postulantesPorPoder(potencias)
+        )
+
+        assert.equals(16, torneo.seleccionados().size())
+        assert.equals(20, torneo.seleccionados().first().poderDeAtaque())
+    }
+}

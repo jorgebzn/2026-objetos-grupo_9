@@ -6,6 +6,10 @@ class Guerrero {
     var property experiencia = 0
     var property traje
 
+    method poderDeAtaque() = potencialOfensivo
+
+    method cantidadDePiezas() = traje.cantidadDePiezas()
+
     method atacar(otroGuerrero) {
         otroGuerrero.recibirAtaque(potencialOfensivo)
     }
@@ -32,6 +36,8 @@ class Traje {
     const desgasteMaximo = 100
 
     method desgaste () =  desgaste
+
+    method cantidadDePiezas() = 1
     method usarTraje () {
         if (!self.estaGastado()) {
             desgaste += desgastePorAtaque
@@ -120,5 +126,27 @@ class TrajeModularizado {
 
     method experienciaGanada() = self.piezasSanas().size() / piezas.size() 
 
+    method cantidadDePiezas() = piezas.size()
+}
 
+//Punto 5: Modelo de los distintos tipos de torneo.
+object powerIsBest {
+    method seleccionar(postulantes) =
+        postulantes.sortedBy({uno, otro => uno.poderDeAtaque() > otro.poderDeAtaque()}).take(16)
+}
+
+object funny {
+    method seleccionar(postulantes) =
+        postulantes.sortedBy({uno, otro => uno.cantidadDePiezas() > otro.cantidadDePiezas()}).take(16)
+}
+
+object surprise {
+    method seleccionar(postulantes) = postulantes.randomized().take(16)
+}
+
+class Torneo {
+    const modalidad
+    const postulantes
+
+    method seleccionados() = modalidad.seleccionar(postulantes)
 }
