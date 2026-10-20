@@ -107,26 +107,27 @@ class Pieza {
     }
 }
 
-class TrajeModularizado {
-    const piezas = []
+class TrajeModularizado inherits Traje {
+    const piezas = [new Pieza(resistencia = 0)]
 
     method piezasSanas() = piezas.filter({pieza => !pieza.estaGastada()})
 
-    method estaGastado() = piezas.all({pieza => pieza.estaGastada()})
+    override method estaGastado() = piezas.all({pieza => pieza.estaGastada()})
 
-    method usarTraje() {
+    override method usarTraje() {
         self.piezasSanas().forEach({pieza => pieza.usarPieza()}) 
         //decisión de diseño: al recibir un ataque todas las piezas reciben el impacto y se desgastan a la vez
     }
 
     method resistenciaTotal() = self.piezasSanas().sum({pieza => pieza.resistencia()})
 
-    method mitigarDanio(danioBase) = danioBase - self.resistenciaTotal() 
+    override method mitigarDanio(danioBase) = 0.max(danioBase - self.resistenciaTotal()) 
     //el daño disminuye en una cantidad de unidades igual a la sumatoria de las resistencias de cada pieza que no esté gastada
 
-    method experienciaGanada() = self.piezasSanas().size() / piezas.size() 
+    override method experienciaGanada() = self.piezasSanas().size() / piezas.size() 
+    //al tener como mínimo una pieza, es innecesario verificar que la cantidad de piezas sea diferente a 0
 
-    method cantidadDePiezas() = piezas.size()
+    override method cantidadDePiezas() = piezas.size()
 }
 
 //Punto 5: Modelo de los distintos tipos de torneo.
